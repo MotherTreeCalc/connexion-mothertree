@@ -62,12 +62,13 @@
 
     // Étape 1 : tenter d'extraire la session OAuth de l'URL (si elle existe)
     try {
-      const { error: oauthError } = await supabase.auth.getSessionFromUrl({ storeSession: true });
-      if (oauthError) {
-        console.warn("Pas de session OAuth à traiter :", oauthError.message);
-      } else {
-        console.log("✅ Session OAuth extraite avec succès");
-      }
+      const { data: authData, error: authError } = await supabase.auth.exchangeCodeForSession();
+if (authError) {
+  console.warn("Pas de code OAuth à traiter :", authError.message);
+} else {
+  console.log("✅ Code OAuth échangé avec succès :", authData);
+}
+
     } catch (e) {
       console.error("❌ Échec getSessionFromUrl:", e.message);
     }
