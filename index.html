@@ -54,7 +54,6 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
     );
 
-    // Gestion du clic pour la connexion
     document.getElementById("loginBtn").addEventListener("click", async () => {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -64,18 +63,17 @@
       });
     });
 
-    // Gestion de déconnexion
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await supabase.auth.signOut();
       location.reload();
     });
 
-    // Vérifie la session actuelle
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session && session.user) {
       document.getElementById("authArea").style.display = "none";
       document.getElementById("userInfo").style.display = "block";
-      document.getElementById("userEmail").textContent = `✅ Connecté en tant que ${user.email}`;
+      document.getElementById("userEmail").textContent = `✅ Connecté en tant que ${session.user.email}`;
     }
   </script>
 </body>
