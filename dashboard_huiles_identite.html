@@ -2,20 +2,55 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Huiles - Accès sécurisé</title>
+  <title>Huiles - Tableau sécurisé</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 50px; }
     .hidden { display: none; }
-    #status { margin-bottom: 20px; font-size: 16px; }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+    }
+    th {
+      background-color: #eee;
+    }
+    #logoutBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
-  <h1>Huiles : Section sécurisée</h1>
+  <h1>🧼 Huiles : Tableau sécurisé</h1>
   <p id="status">⏳ Vérification de la session en cours...</p>
 
   <div id="content" class="hidden">
-    <p>✅ Accès autorisé</p>
-    <p id="userEmail"></p>
+    <p>✅ Connecté en tant que <span id="userEmail"></span></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Origine</th>
+          <th>Type</th>
+          <th>État</th>
+        </tr>
+      </thead>
+      <tbody id="oilTableBody">
+        <!-- Lignes ajoutées dynamiquement -->
+      </tbody>
+    </table>
+
+    <button id="logoutBtn">🚪 Déconnexion</button><br>
     <a href="index.html">🏠 Retour à l'accueil</a>
   </div>
 
@@ -27,15 +62,41 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
     );
 
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (session && session.user) {
       document.getElementById("status").style.display = "none";
       document.getElementById("content").classList.remove("hidden");
-      document.getElementById("userEmail").textContent = `Connecté en tant que ${session.user.email}`;
+      document.getElementById("userEmail").textContent = session.user.email;
+
+      // 👇 Exemple de chargement de données depuis la table huiles_identite
+      const { data, error } = await supabase.from("huiles_identite").select("nom, origine, type, etat");
+
+      const tbody = document.getElementById("oilTableBody");
+
+      if (data && data.length > 0) {
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.nom}</td>
+            <td>${row.origine}</td>
+            <td>${row.type}</td>
+            <td>${row.etat}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="4">Aucune donnée disponible.</td></tr>`;
+      }
     } else {
-      document.getElementById("status").textContent = "❌ Utilisateur non connecté. Veuillez retourner à l’accueil.";
+      document.getElementById("status").textContent = "❌ Session invalide. Veuillez vous reconnecter.";
     }
+
+    // 🔐 Déconnexion
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.href = "index.html";
+    });
   </script>
 </body>
 </html>
