@@ -1,57 +1,42 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Huiles - Tableau sécurisé</title>
+  <meta charset="UTF-8" />
+  <title>Huiles : Tableau sécurisé</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 50px; }
-    .hidden { display: none; }
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 80%;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 12px;
-    }
-    th {
-      background-color: #eee;
-    }
-    #logoutBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #d9534f;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    table { margin: 20px auto; border-collapse: collapse; width: 95%; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background: #f0f0f0; font-weight: bold; }
+    .success { color: green; }
+    .error { color: crimson; }
+    .controls { margin-top: 30px; }
+    button, a { margin: 10px; font-size: 16px; padding: 10px 20px; }
+    a { text-decoration: none; color: #2c3e50; }
   </style>
 </head>
 <body>
-  <h1>🧼 Huiles : Tableau sécurisé</h1>
-  <p id="status">⏳ Vérification de la session en cours...</p>
+  <h1>🧪 Huiles : Tableau sécurisé</h1>
+  <p id="status">Vérification de la session...</p>
 
-  <div id="content" class="hidden">
-    <p>✅ Connecté en tant que <span id="userEmail"></span></p>
+  <table id="dataTable" style="display: none;">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>INCI</th>
+        <th>Origine</th>
+        <th>Type</th>
+        <th>Rareté</th>
+        <th>Coût</th>
+        <th>Créée le</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Nom</th>
-          <th>Origine</th>
-          <th>Type</th>
-          <th>État</th>
-        </tr>
-      </thead>
-      <tbody id="oilTableBody">
-        <!-- Lignes ajoutées dynamiquement -->
-      </tbody>
-    </table>
-
-    <button id="logoutBtn">🚪 Déconnexion</button><br>
-    <a href="index.html">🏠 Retour à l'accueil</a>
+  <div class="controls">
+    <button id="logoutBtn">🔒 Déconnexion</button>
+    <a href="index.html">🏡 Retour à l'accueil</a>
   </div>
 
   <script type="module">
@@ -64,38 +49,47 @@
 
     const { data: { session } } = await supabase.auth.getSession();
 
-    if (session && session.user) {
-      document.getElementById("status").style.display = "none";
-      document.getElementById("content").classList.remove("hidden");
-      document.getElementById("userEmail").textContent = session.user.email;
+    const status = document.getElementById("status");
+    const table = document.getElementById("dataTable");
+    const tbody = document.getElementById("tableBody");
 
-      // 👇 Exemple de chargement de données depuis la table huiles_identite
-      const { data, error } = await supabase.from("huiles_identite").select("nom, origine, type, etat");
-
-      const tbody = document.getElementById("oilTableBody");
-
-      if (data && data.length > 0) {
-        data.forEach(row => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${row.nom}</td>
-            <td>${row.origine}</td>
-            <td>${row.type}</td>
-            <td>${row.etat}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } else {
-        tbody.innerHTML = `<tr><td colspan="4">Aucune donnée disponible.</td></tr>`;
-      }
+    if (!session || !session.user) {
+      status.textContent = "❌ Utilisateur non connecté.";
+      status.className = "error";
     } else {
-      document.getElementById("status").textContent = "❌ Session invalide. Veuillez vous reconnecter.";
+      status.innerHTML = `✅ Connecté en tant que <b>${session.user.email}</b>`;
+      status.className = "success";
+
+      const { data, error } = await supabase
+        .from("huiles_identite")
+        .select("*")
+        .order("id");
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="7" class="error">Erreur : ${error.message}</td></tr>`;
+      } else if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7">Aucune donnée disponible.</td></tr>`;
+      } else {
+        data.forEach(h => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${h.nom}</td>
+            <td>${h.inci}</td>
+            <td>${h.origine}</td>
+            <td>${h.type}</td>
+            <td>${h.rarete}</td>
+            <td>${h.cout}</td>
+            <td>${new Date(h.created_at).toLocaleDateString()}</td>
+          `;
+          tbody.appendChild(row);
+        });
+        table.style.display = "table";
+      }
     }
 
-    // 🔐 Déconnexion
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await supabase.auth.signOut();
-      location.href = "index.html";
+      location.reload();
     });
   </script>
 </body>
