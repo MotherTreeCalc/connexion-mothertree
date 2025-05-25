@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Huiles : Tableau sécurisé</title>
+  <title>Huiles : Tableau interactif</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 40px; }
     table { margin: 20px auto; border-collapse: collapse; width: 95%; }
@@ -11,13 +11,26 @@
     .success { color: green; }
     .error { color: crimson; }
     .controls { margin-top: 30px; }
-    button, a { margin: 10px; font-size: 16px; padding: 10px 20px; }
+    button, a, input, select { margin: 5px; font-size: 14px; padding: 8px; }
     a { text-decoration: none; color: #2c3e50; }
+    input, select { width: 150px; }
   </style>
 </head>
 <body>
-  <h1>🧪 Huiles : Tableau sécurisé</h1>
-  <p id="status">Vérification de la session...</p>
+  <h1>🧼 Huiles : Tableau interactif</h1>
+  <p id="status">Vérification...</p>
+
+  <div class="controls">
+    <form id="addForm">
+      <input type="text" placeholder="Nom" id="nom" required />
+      <input type="text" placeholder="INCI" id="inci" required />
+      <input type="text" placeholder="Origine" id="origine" required />
+      <input type="text" placeholder="Type" id="type" required />
+      <input type="text" placeholder="Rareté" id="rarete" required />
+      <input type="text" placeholder="Coût" id="cout" required />
+      <button type="submit">➕ Ajouter</button>
+    </form>
+  </div>
 
   <table id="dataTable" style="display: none;">
     <thead>
@@ -28,15 +41,15 @@
         <th>Type</th>
         <th>Rareté</th>
         <th>Coût</th>
-        <th>Créée le</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
 
   <div class="controls">
-    <button id="logoutBtn">🔒 Déconnexion</button>
-    <a href="index.html">🏡 Retour à l'accueil</a>
+    <button id="logoutBtn">🔓 Déconnexion</button>
+    <a href="index.html">🏡 Accueil</a>
   </div>
 
   <script type="module">
@@ -47,45 +60,61 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
     );
 
-    const { data: { session } } = await supabase.auth.getSession();
-
     const status = document.getElementById("status");
     const table = document.getElementById("dataTable");
     const tbody = document.getElementById("tableBody");
 
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session || !session.user) {
       status.textContent = "❌ Utilisateur non connecté.";
       status.className = "error";
     } else {
-      status.innerHTML = `✅ Connecté en tant que <b>${session.user.email}</b>`;
+      status.innerHTML = `✅ Connecté : <b>${session.user.email}</b>`;
       status.className = "success";
-
-      const { data, error } = await supabase
-        .from("huiles_identite")
-        .select("*")
-        .order("id");
-
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="7" class="error">Erreur : ${error.message}</td></tr>`;
-      } else if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7">Aucune donnée disponible.</td></tr>`;
-      } else {
-        data.forEach(h => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${h.nom}</td>
-            <td>${h.inci}</td>
-            <td>${h.origine}</td>
-            <td>${h.type}</td>
-            <td>${h.rarete}</td>
-            <td>${h.cout}</td>
-            <td>${new Date(h.created_at).toLocaleDateString()}</td>
-          `;
-          tbody.appendChild(row);
-        });
-        table.style.display = "table";
-      }
+      refreshTable();
     }
+
+    async function refreshTable() {
+      const { data, error } = await supabase.from("huiles_identite").select("*").order("id");
+      if (error) return tbody.innerHTML = `<tr><td colspan='7'>Erreur</td></tr>`;
+      tbody.innerHTML = "";
+      data.forEach(h => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input value="${h.nom}" onchange="updateField(${h.id}, 'nom', this.value)" /></td>
+          <td><input value="${h.inci}" onchange="updateField(${h.id}, 'inci', this.value)" /></td>
+          <td><input value="${h.origine}" onchange="updateField(${h.id}, 'origine', this.value)" /></td>
+          <td><input value="${h.type}" onchange="updateField(${h.id}, 'type', this.value)" /></td>
+          <td><input value="${h.rarete}" onchange="updateField(${h.id}, 'rarete', this.value)" /></td>
+          <td><input value="${h.cout}" onchange="updateField(${h.id}, 'cout', this.value)" /></td>
+          <td><button onclick="deleteRow(${h.id})">🗑️</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+      table.style.display = "table";
+    }
+
+    window.updateField = async (id, field, value) => {
+      await supabase.from("huiles_identite").update({ [field]: value }).eq("id", id);
+    };
+
+    window.deleteRow = async id => {
+      await supabase.from("huiles_identite").delete().eq("id", id);
+      refreshTable();
+    };
+
+    document.getElementById("addForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const nom = document.getElementById("nom").value;
+      const inci = document.getElementById("inci").value;
+      const origine = document.getElementById("origine").value;
+      const type = document.getElementById("type").value;
+      const rarete = document.getElementById("rarete").value;
+      const cout = document.getElementById("cout").value;
+      await supabase.from("huiles_identite").insert({ nom, inci, origine, type, rarete, cout });
+      e.target.reset();
+      refreshTable();
+    });
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await supabase.auth.signOut();
