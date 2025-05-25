@@ -12,28 +12,28 @@
   <p>Merci de patienter</p>
 
   <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  const supabase = createClient(
-    "https://vwxjpuqymhsevwarrrea.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
-  );
+    const supabase = createClient(
+      "https://vwxjpuqymhsevwarrrea.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
+    );
 
-  // Étape obligatoire pour finaliser la connexion OAuth
-  const { error } = await supabase.auth.getSessionFromUrl();
+    // (1) Finalise la connexion OAuth
+    const { error } = await supabase.auth.getSessionFromUrl();
 
-  if (error) {
-    document.body.innerHTML = `<p style="color:red;">❌ Erreur : ${error.message}</p>`;
-  } else {
-    // Vérifie la session récupérée
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      document.body.innerHTML = `<p>✅ Bienvenue ${data.user.email}</p><a href="https://mothertreecalc.github.io/index.html">Accéder au site</a>`;
+    if (error) {
+      document.body.innerHTML = `<p style="color:red;">❌ Erreur : ${error.message}</p>`;
     } else {
-      document.body.innerHTML = `<p style="color:red;">❌ Session invalide</p>`;
-    } else {
-      // Redirige vers la vraie page d’accueil
-      window.location.href = "https://mothertreecalc.github.io/index.html";
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        document.body.innerHTML = `
+          <p>✅ Bienvenue ${data.user.email}</p>
+          <a href="https://mothertreecalc.github.io/index.html">Accéder au site</a>
+        `;
+      } else {
+        document.body.innerHTML = `<p style="color:red;">❌ Session invalide</p>`;
+      }
     }
   </script>
 </body>
