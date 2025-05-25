@@ -1,97 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard Mother Tree</title>
+  <meta charset="UTF-8">
+  <title>Huiles - Accès sécurisé</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
-    button { padding: 4px 8px; margin: 2px; }
-    input[type="text"] { width: 100%; }
+    body { font-family: sans-serif; text-align: center; padding: 50px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>Tableau de bord Mother Tree</h1>
-  <p id="status">Connexion en cours...</p>
-  <table id="dataTable"></table>
+  <h1>Huiles : Section sécurisée</h1>
+  <p id="status">Vérification de la session en cours...</p>
+  <div id="content" class="hidden">
+    <p>✅ Accès autorisé</p>
+    <p id="userEmail"></p>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const supabase = createClient(
       "https://vwxjpuqymhsevwarrrea.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
     );
 
-    const tableName = "huiles_identite";
+    const { data: { user } } = await supabase.auth.getUser();
 
-    async function loadData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        document.getElementById("status").textContent = "❌ Utilisateur non connecté.";
-        return;
-      }
-      document.getElementById("status").textContent = `✅ Connecté en tant que ${user.email}`;
-
-      const { data, error } = await supabase.from(tableName).select("*");
-      if (error) {
-        document.getElementById("status").textContent = "❌ Erreur lors du chargement : " + error.message;
-        return;
-      }
-
-      renderTable(data);
+    if (user) {
+      document.getElementById("status").style.display = "none";
+      document.getElementById("content").classList.remove("hidden");
+      document.getElementById("userEmail").textContent = `Connecté en tant que ${user.email}`;
+    } else {
+      document.getElementById("status").textContent = "❌ Session invalide ou expirée. Veuillez vous reconnecter.";
     }
-
-    function renderTable(rows) {
-      const table = document.getElementById("dataTable");
-      if (rows.length === 0) {
-        table.innerHTML = "<tr><td>Aucune donnée disponible</td></tr>";
-        return;
-      }
-
-      const headers = Object.keys(rows[0]);
-      const headerRow = headers.map(h => `<th>${h}</th>`).join("") + "<th>Actions</th>";
-      const bodyRows = rows.map(row => {
-        const cells = headers.map(h => `<td><input type="text" value="${row[h] ?? ''}" data-field="${h}" data-id="${row.id}" /></td>`).join("");
-        return `<tr>${cells}<td>
-          <button onclick="updateRow(${row.id})">💾</button>
-          <button onclick="deleteRow(${row.id})">🗑️</button>
-        </td></tr>`;
-      }).join("");
-
-      table.innerHTML = `<tr>${headerRow}</tr>${bodyRows}`;
-    }
-
-    window.updateRow = async function(id) {
-      const inputs = document.querySelectorAll(`input[data-id="${id}"]`);
-      const update = {};
-      inputs.forEach(input => {
-        if (input.dataset.field !== "id") {
-          update[input.dataset.field] = input.value;
-        }
-      });
-      const { error } = await supabase.from(tableName).update(update).eq("id", id);
-      if (error) {
-        alert("Erreur lors de la mise à jour : " + error.message);
-      } else {
-        alert("✅ Mise à jour réussie.");
-      }
-    };
-
-    window.deleteRow = async function(id) {
-      if (!confirm("Supprimer cette entrée ?")) return;
-      const { error } = await supabase.from(tableName).delete().eq("id", id);
-      if (error) {
-        alert("Erreur lors de la suppression : " + error.message);
-      } else {
-        alert("✅ Supprimé.");
-        loadData();
-      }
-    };
-
-    loadData();
   </script>
 </body>
 </html>
