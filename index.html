@@ -35,6 +35,7 @@
 </head>
 <body>
   <h1>Bienvenue dans l'espace Mother Tree</h1>
+  <p id="etat">Chargement...</p>
 
   <div id="authArea" style="display: none;">
     <button id="loginBtn">Connexion Google</button>
@@ -54,15 +55,36 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
     );
 
+    const etat = document.getElementById("etat");
     const authArea = document.getElementById("authArea");
     const userInfo = document.getElementById("userInfo");
     const userEmail = document.getElementById("userEmail");
+
+    // Tente de récupérer les tokens d'auth Google après redirection
+    try {
+      await supabase.auth.getSessionFromUrl({ storeSession: true });
+    } catch (e) {
+      console.log("Aucun paramètre OAuth à traiter.");
+    }
+
+    // Vérifie si une session est active
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session && session.user) {
+      etat.style.display = "none";
+      authArea.style.display = "none";
+      userInfo.style.display = "block";
+      userEmail.textContent = `✅ Connecté en tant que ${session.user.email}`;
+    } else {
+      etat.textContent = "Tu n'es pas connecté.";
+      authArea.style.display = "block";
+    }
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://mothertreecalc.github.io/connexion-mothertree/'
+          redirectTo: window.location.href
         }
       });
     });
@@ -71,20 +93,6 @@
       await supabase.auth.signOut();
       location.reload();
     });
-
-    const sessionCheck = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user) {
-        authArea.style.display = "none";
-        userInfo.style.display = "block";
-        userEmail.textContent = `✅ Connecté en tant que ${session.user.email}`;
-      } else {
-        authArea.style.display = "block";
-        userInfo.style.display = "none";
-      }
-    };
-
-    sessionCheck();
   </script>
 </body>
 </html>
