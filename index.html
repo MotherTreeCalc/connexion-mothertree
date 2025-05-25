@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Accueil Mother Tree</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 50px; }
@@ -35,9 +35,8 @@
 </head>
 <body>
   <h1>Bienvenue dans l'espace Mother Tree</h1>
-  <p id="etat">Chargement de la session en cours...</p>
 
-  <div id="authArea" style="display: none;">
+  <div id="authArea">
     <button id="loginBtn">Connexion Google</button>
   </div>
 
@@ -52,65 +51,32 @@
 
     const supabase = createClient(
       "https://vwxjpuqymhsevwarrrea.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
     );
 
-    const etat = document.getElementById("etat");
-    const authArea = document.getElementById("authArea");
-    const userInfo = document.getElementById("userInfo");
-    const userEmail = document.getElementById("userEmail");
-
-    // Étape 1 : tenter d'extraire la session OAuth de l'URL (si elle existe)
-    try {
-      const { data: authData, error: authError } = await supabase.auth.exchangeCodeForSession();
-if (authError) {
-  console.warn("Pas de code OAuth à traiter :", authError.message);
-} else {
-  console.log("✅ Code OAuth échangé avec succès :", authData);
-}
-
-    } catch (e) {
-      console.error("❌ Échec getSessionFromUrl:", e.message);
-    }
-
-    // Étape 2 : vérifier si une session existe
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-    if (sessionError) {
-      console.error("❌ Erreur session Supabase :", sessionError.message);
-    }
-
-    console.log("📦 Session actuelle :", session);
-
-    if (session && session.user) {
-      etat.style.display = "none";
-      authArea.style.display = "none";
-      userInfo.style.display = "block";
-      userEmail.textContent = `✅ Connecté en tant que ${session.user.email}`;
-      console.log("✅ Utilisateur détecté :", session.user);
-    } else {
-      etat.textContent = "Tu n'es pas connecté.";
-      authArea.style.display = "block";
-      console.warn("⚠️ Aucune session active côté navigateur.");
-    }
-
-    // Connexion
+    // Gestion du clic pour la connexion
     document.getElementById("loginBtn").addEventListener("click", async () => {
-      console.log("🔑 Lancement de l'authentification Google...");
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.href
+          redirectTo: 'https://mothertreecalc.github.io/connexion-mothertree/'
         }
       });
     });
 
-    // Déconnexion
+    // Gestion de déconnexion
     document.getElementById("logoutBtn").addEventListener("click", async () => {
-      console.log("🚪 Déconnexion...");
       await supabase.auth.signOut();
       location.reload();
     });
+
+    // Vérifie la session actuelle
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      document.getElementById("authArea").style.display = "none";
+      document.getElementById("userInfo").style.display = "block";
+      document.getElementById("userEmail").textContent = `✅ Connecté en tant que ${user.email}`;
+    }
   </script>
 </body>
 </html>
