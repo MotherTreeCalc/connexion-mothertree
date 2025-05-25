@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,25 +5,75 @@
   <title>Accueil Mother Tree</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 50px; }
-    h1 { font-size: 2em; }
-    a {
+    h1 { font-size: 2em; margin-bottom: 20px; }
+    a, button {
       display: inline-block;
-      margin-top: 30px;
+      margin: 10px 15px;
       padding: 12px 24px;
+      font-size: 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    a {
       background-color: #2d6cdf;
       color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 18px;
     }
     a:hover {
       background-color: #1e4fab;
     }
+    button {
+      background-color: #555;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #333;
+    }
+    #userEmail { margin-top: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
   <h1>Bienvenue dans l'espace Mother Tree</h1>
-  <p>Accédez à l'interface de gestion des huiles :</p>
-  <a href="dashboard_huiles_identite.html">🧼 Accéder à Huiles Identité</a>
+
+  <div id="authArea">
+    <button id="loginBtn">Connexion Google</button>
+  </div>
+
+  <div id="userInfo" style="display: none;">
+    <p id="userEmail"></p>
+    <a href="dashboard_huiles_identite.html">🧼 Accéder à Huiles Identité</a>
+    <button id="logoutBtn">Déconnexion</button>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const supabase = createClient(
+      "https://vwxjpuqymhsevwarrrea.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
+    );
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://mothertreecalc.github.io/connexion-mothertree/'
+        }
+      });
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      document.getElementById("authArea").style.display = "none";
+      document.getElementById("userInfo").style.display = "block";
+      document.getElementById("userEmail").textContent = `✅ Connecté en tant que ${user.email}`;
+    }
+  </script>
 </body>
 </html>
