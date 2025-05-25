@@ -35,7 +35,7 @@
 </head>
 <body>
   <h1>Bienvenue dans l'espace Mother Tree</h1>
-  <p id="etat">Chargement...</p>
+  <p id="etat">Chargement de la session en cours...</p>
 
   <div id="authArea" style="display: none;">
     <button id="loginBtn">Connexion Google</button>
@@ -60,27 +60,42 @@
     const userInfo = document.getElementById("userInfo");
     const userEmail = document.getElementById("userEmail");
 
-    // Tente de récupérer les tokens d'auth Google après redirection
+    // Étape 1 : tenter d'extraire la session OAuth de l'URL (si elle existe)
     try {
-      await supabase.auth.getSessionFromUrl({ storeSession: true });
+      const { error: oauthError } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+      if (oauthError) {
+        console.warn("Pas de session OAuth à traiter :", oauthError.message);
+      } else {
+        console.log("✅ Session OAuth extraite avec succès");
+      }
     } catch (e) {
-      console.log("Aucun paramètre OAuth à traiter.");
+      console.error("❌ Échec getSessionFromUrl:", e.message);
     }
 
-    // Vérifie si une session est active
-    const { data: { session } } = await supabase.auth.getSession();
+    // Étape 2 : vérifier si une session existe
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error("❌ Erreur session Supabase :", sessionError.message);
+    }
+
+    console.log("📦 Session actuelle :", session);
 
     if (session && session.user) {
       etat.style.display = "none";
       authArea.style.display = "none";
       userInfo.style.display = "block";
       userEmail.textContent = `✅ Connecté en tant que ${session.user.email}`;
+      console.log("✅ Utilisateur détecté :", session.user);
     } else {
       etat.textContent = "Tu n'es pas connecté.";
       authArea.style.display = "block";
+      console.warn("⚠️ Aucune session active côté navigateur.");
     }
 
+    // Connexion
     document.getElementById("loginBtn").addEventListener("click", async () => {
+      console.log("🔑 Lancement de l'authentification Google...");
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -89,7 +104,9 @@
       });
     });
 
+    // Déconnexion
     document.getElementById("logoutBtn").addEventListener("click", async () => {
+      console.log("🚪 Déconnexion...");
       await supabase.auth.signOut();
       location.reload();
     });
