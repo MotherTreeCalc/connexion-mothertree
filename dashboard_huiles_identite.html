@@ -18,25 +18,24 @@
   </div>
 
   <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  const supabase = createClient(
-    "https://vwxjpuqymhsevwarrrea.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
-  );
+    const supabase = createClient(
+      "https://vwxjpuqymhsevwarrrea.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
+    );
 
-  // 🔧 Nécessaire pour récupérer la session post-OAuth
-  await supabase.auth.getSessionFromUrl();
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    document.getElementById("status").style.display = "none";
-    document.getElementById("content").classList.remove("hidden");
-    document.getElementById("userEmail").textContent = `Connecté en tant que ${user.email}`;
-  } else {
-    document.getElementById("status").textContent = "❌ Session invalide ou expirée. Veuillez vous reconnecter.";
-  }
-</script>
+    if (session && session.user) {
+      document.getElementById("status").style.display = "none";
+      document.getElementById("content").classList.remove("hidden");
+      document.getElementById("userEmail").textContent = `Connecté en tant que ${session.user.email}`;
+    } else {
+      document.getElementById("status").textContent = "❌ Session invalide ou expirée. Veuillez vous reconnecter.";
+    }
+  </script>
 </body>
 </html>
