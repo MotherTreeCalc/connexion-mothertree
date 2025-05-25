@@ -6,37 +6,36 @@
   <style>
     body { font-family: sans-serif; text-align: center; padding: 50px; }
     .hidden { display: none; }
+    #status { margin-bottom: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
   <h1>Huiles : Section sécurisée</h1>
-  <p id="status">Vérification de la session en cours...</p>
+  <p id="status">⏳ Vérification de la session en cours...</p>
+
   <div id="content" class="hidden">
     <p>✅ Accès autorisé</p>
     <p id="userEmail"></p>
-    <a href="index.html">Retour à l'accueil</a>
+    <a href="index.html">🏠 Retour à l'accueil</a>
   </div>
 
   <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  const supabase = createClient(
-    "https://vwxjpuqymhsevwarrrea.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
-  );
+    const supabase = createClient(
+      "https://vwxjpuqymhsevwarrrea.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
+    );
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-  if (session && session.user) {
-    document.getElementById("status").style.display = "none";
-    document.getElementById("content").classList.remove("hidden");
-    document.getElementById("userEmail").textContent = `Connecté en tant que ${session.user.email}`;
-  } else {
-    document.getElementById("status").textContent = "❌ Session invalide ou expirée. Veuillez vous reconnecter.";
-  }
-</script>
-
+    if (session && session.user) {
+      document.getElementById("status").style.display = "none";
+      document.getElementById("content").classList.remove("hidden");
+      document.getElementById("userEmail").textContent = `Connecté en tant que ${session.user.email}`;
+    } else {
+      document.getElementById("status").textContent = "❌ Utilisateur non connecté. Veuillez retourner à l’accueil.";
+    }
+  </script>
 </body>
 </html>
