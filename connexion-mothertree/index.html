@@ -1,0 +1,27 @@
+<!-- 1. Fichier : connexion-mothertree/index.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion OAuth</title>
+</head>
+<body>
+  <h2>Connexion en cours...</h2>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const supabase = createClient(
+      "https://vwxjpuqymhsevwarrrea.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.PMoWITQhgpF0B0AA4Q1lTYGJRxRhZNljk2LTkuwznxw"
+    );
+
+    const { error } = await supabase.auth.exchangeCodeForSession();
+
+    if (error) {
+      document.body.innerHTML = `<p style="color:red;">Erreur : ${error.message}</p>`;
+    } else {
+      window.location.href = "../index.html";
+    }
+  </script>
+</body>
+</html>
