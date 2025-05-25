@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>Connexion Mother Tree</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body style="font-family: sans-serif; padding: 40px; text-align: center;">
   <h1>Connexion sécurisée</h1>
   <p>Clique sur le bouton ci-dessous pour te connecter avec Google</p>
-  <button onclick="login()" style="font-size: 18px; padding: 10px 20px;">Connexion Google</button>
+  <button id="loginBtn" style="font-size: 18px; padding: 10px 20px;">Connexion Google</button>
   <p id="message" style="margin-top: 20px;"></p>
 
-  <script>
-    const supabase = supabase.createClient(
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/+esm";
+
+    const supabase = createClient(
       "https://vwxjpuqymhsevwarrrea.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGpwdXF5bWhzZXZ3YXJycmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMjc1ODgsImV4cCI6MjA2MzcwMzU4OH0.Q6n1mhn_OIPoRMofZz2NR_qyUw7LLnklg2ti7imvqkU"
     );
 
-    async function login() {
+    document.getElementById("loginBtn").addEventListener("click", async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -25,13 +26,14 @@
         }
       });
 
+      const msg = document.getElementById("message");
       if (error) {
-        document.getElementById("message").textContent = "❌ Erreur : " + error.message;
+        msg.textContent = "❌ Erreur : " + error.message;
         console.error(error);
       } else {
-        document.getElementById("message").textContent = "✅ Redirection en cours...";
+        msg.textContent = "✅ Redirection en cours...";
       }
-    }
+    });
   </script>
 </body>
 </html>
